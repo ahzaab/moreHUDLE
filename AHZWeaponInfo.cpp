@@ -20,19 +20,16 @@
 #include "skse/GameExtraData.h"
 #include <list>
 #include <algorithm>
-#include "PluginProcessInfo.h"
-#include "IngredientLUT.h"
-#include "SKSE/PapyrusObjectReference.h"
+#include "skse/PapyrusObjectReference.h"
 #include "AHZWeaponInfo.h"
 
-
 class ContainerAmmoVistor
-{	
+{
 public:
 	AHZWeaponData ammoData;
 	ContainerAmmoVistor()
 	{ }
-	
+
 	bool Accept(ExtraContainerChanges::EntryData* pEntryData)
 	{
 		if (pEntryData && pEntryData->type && pEntryData->type->GetFormType() == kFormType_Ammo)
@@ -92,7 +89,6 @@ AHZWeaponData CAHZWeaponInfo::GetWeaponInfo(TESObjectREFR * thisObject)
 	return weaponData;
 }
 
-
 AHZWeaponData CAHZWeaponInfo::GetLeftHandWeapon(void)
 {
 	AHZWeaponData weaponData;
@@ -101,7 +97,7 @@ AHZWeaponData CAHZWeaponInfo::GetLeftHandWeapon(void)
 	{
 		TESForm * tempItem = pPC->GetEquippedObject(true);
 		if (tempItem && tempItem->GetFormType() == kFormType_Weapon)
-		{	
+		{
 			MatchByForm matcher(tempItem);
 			ExtraContainerChanges* containerChanges = static_cast<ExtraContainerChanges*>(pPC->extraData.GetByType(kExtraData_ContainerChanges));
 			if (!containerChanges)
@@ -123,7 +119,7 @@ AHZWeaponData CAHZWeaponInfo::GetRightHandWeapon(void)
 	{
 		TESForm * tempItem = pPC->GetEquippedObject(false);
 		if (tempItem && tempItem->GetFormType() == kFormType_Weapon)
-		{	
+		{
 			MatchByForm matcher(tempItem);
 			ExtraContainerChanges* containerChanges = static_cast<ExtraContainerChanges*>(pPC->extraData.GetByType(kExtraData_ContainerChanges));
 			if (!containerChanges)
@@ -147,7 +143,7 @@ AHZWeaponData CAHZWeaponInfo::GetEquippedAmmo(void)
 
 	PlayerCharacter* pPC = (*g_thePlayer);
 	if (pPC)
-	{			
+	{
 		ExtraContainerChanges* containerChanges = static_cast<ExtraContainerChanges*>(pPC->extraData.GetByType(kExtraData_ContainerChanges));
 		if (!containerChanges)
 			return weaponData;
@@ -161,6 +157,3 @@ AHZWeaponData CAHZWeaponInfo::GetEquippedAmmo(void)
 	}
 	return weaponData;
 }
-
-
-

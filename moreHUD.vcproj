@@ -617,6 +617,38 @@
 			>
 		</File>
 		<File
+			RelativePath=".\AHZConsole.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\AHZConsole.h"
+			>
+		</File>
+		<File
+			RelativePath=".\AHZExternalFormTable.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\AHZExternalFormTable.h"
+			>
+		</File>
+		<File
+			RelativePath=".\AHZFormLookup.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\AHZFormLookup.h"
+			>
+		</File>
+		<File
+			RelativePath=".\AHZLUTObject.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\AHZLUTObject.h"
+			>
+		</File>
+		<File
 			RelativePath=".\AHZMoreHUDPlugin.rc"
 			>
 		</File>
@@ -629,6 +661,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\AHZScaleform.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\AHZScaleform.h"
+			>
+		</File>
+		<File
 			RelativePath=".\AHZScaleformHook.cpp"
 			>
 		</File>
@@ -637,11 +677,19 @@
 			>
 		</File>
 		<File
-			RelativePath=".\AHZUtility.cpp"
+			RelativePath=".\AHZUtilities.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\AHZUtility.h"
+			RelativePath=".\AHZUtilities.h"
+			>
+		</File>
+		<File
+			RelativePath=".\AHZVanillaFormTable.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\AHZVanillaFormTable.h"
 			>
 		</File>
 		<File
@@ -654,22 +702,6 @@
 		</File>
 		<File
 			RelativePath=".\exports.def"
-			>
-		</File>
-		<File
-			RelativePath=".\FoodLUT.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\FoodLUT.h"
-			>
-		</File>
-		<File
-			RelativePath=".\IngredientLUT.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\IngredientLUT.h"
 			>
 		</File>
 		<File
