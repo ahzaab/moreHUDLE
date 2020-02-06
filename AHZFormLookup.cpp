@@ -297,7 +297,7 @@ TESForm * CAHZFormLookup::GetAttachedForm(TESObjectREFR *form)
             // Get the first form and see if it is an ingredient
             if (lvli->leveledList.length > 0)
             {
-               TESForm *itemform = (TESForm *)lvli->leveledList.entries[0].unk0;
+				TESForm *itemform = (TESForm *)lvli->leveledList.entries[0].form;
                return itemform;
             }
          }
@@ -308,7 +308,7 @@ TESForm * CAHZFormLookup::GetAttachedForm(TESObjectREFR *form)
             // Get the first form and see if it is an ingredient
             if (lvli->forms.count > 0)
             {
-               TESForm *itemform = (TESForm *)lvli->forms.arr.entries[0];
+				TESForm *itemform = (TESForm *)lvli->forms[0];
                return itemform;
             }
          }

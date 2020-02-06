@@ -44,7 +44,9 @@ IDebugLog	gLog;
 PluginHandle	g_pluginHandle = kPluginHandle_Invalid;
 static UInt32 g_skseVersion = 0;
 SKSEScaleformInterface* g_scaleform = NULL;
+SKSEMessagingInterface *g_skseMessaging = NULL;
 AHZEventHandler menuEvent;
+AHZCrosshairRefEventHandler crossHairEvent;
 #define PLUGIN_VERSION  (30603)
 
 // Just initialize to start routing to the console window
@@ -208,6 +210,44 @@ bool RegisterScaleform(GFxMovieView * view, GFxValue * root)
    return true;
 }
 
+// Listens to events dispatched by SKSE
+void EventListener(SKSEMessagingInterface::Message* msg)
+{
+   if (!msg)
+   {
+      return;
+   }
+
+   if (string(msg->sender) == "SKSE" && msg->type == SKSEMessagingInterface::kMessage_DataLoaded)
+   {
+		// First load the built-in (Known Vanilla) ACTI Forms and VM Script Variables
+      CAHZVanillaFormTable::LoadACTIForms(CAHZFormLookup::Instance());
+      CAHZVanillaFormTable::LoadVMVariables(CAHZFormLookup::Instance());
+
+      // Second load any addional forms added externally
+      _MESSAGE("Processing .mhud Files...");
+
+      // Read all .mhuf files and load in the lookup tables
+      string skyrimDataPath = CAHZUtilities::GetSkyrimDataPath();
+
+      // Get all .mhud files from the skyrim data folder
+      vector<string> mHudFiles = CAHZUtilities::GetMHudFileList(skyrimDataPath);
+
+      if (!mHudFiles.size())
+      {
+         _MESSAGE("INFO: No .mHud files detected, skipping.");
+      }
+      else
+      {  
+         // Load the external ACTI Forms and VM Script Variables 
+         CAHZExternalFormTable::LoadACTIForms(CAHZFormLookup::Instance(), mHudFiles);
+         CAHZExternalFormTable::LoadVMVariables(CAHZFormLookup::Instance(), mHudFiles);
+         
+         _MESSAGE("%d .mHud file(s) processed", mHudFiles.size());
+      }
+   }
+}
+
 extern "C"
 {
    bool SKSEPlugin_Query(const SKSEInterface * skse, PluginInfo * info)
@@ -266,15 +306,21 @@ extern "C"
 
    bool SKSEPlugin_Load(const SKSEInterface * skse)
    {
-	   //while (!IsDebuggerPresent())
-	   //{
-	   //   Sleep(10);
-	   //}
+	   while (!IsDebuggerPresent())
+	   {
+	      Sleep(10);
+	   }
 
-	   //Sleep(1000 * 2);
+	   Sleep(1000 * 2);
 
       // register scaleform callbacks
       g_scaleform->Register("AHZmoreHUDPlugin", RegisterScaleform);
+
+      EventDispatcher<SKSECrosshairRefEvent> * dispatcher = (EventDispatcher<SKSECrosshairRefEvent> *)g_skseMessaging->GetEventDispatcher(SKSEMessagingInterface::kDispatcher_CrosshairEvent);
+      dispatcher->AddEventSink(&crossHairEvent);
+
+      // Register listener for the gme loaded event
+      g_skseMessaging->RegisterListener(skse->GetPluginHandle(), "SKSE", EventListener);
 
 	  Hooks_EnemyUpdate_Commit();
 

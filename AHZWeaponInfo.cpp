@@ -30,7 +30,7 @@ public:
 	ContainerAmmoVistor()
 	{ }
 
-	bool Accept(ExtraContainerChanges::EntryData* pEntryData)
+	bool Accept(InventoryEntryData* pEntryData)
 	{
 		if (pEntryData && pEntryData->type && pEntryData->type->GetFormType() == kFormType_Ammo)
 		{

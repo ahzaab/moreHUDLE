@@ -8,53 +8,16 @@
 #include "AHZScaleformHook.h"
 #include "skse/GameMenus.h"
 #include "skse/PapyrusEvents.h"
-#include "AHZVanillaFormTable.h"
-#include "AHZExternalFormTable.h"
 #include <string>
 
 using namespace std;
 static bool ahzMenuLoaded = false;
 static SafeEnemyLevelDataHolder ahzTargetHandle;
 TESObjectREFR *g_ahzTargetReference;
-static bool s_lutLoaded = false;
-
-void LoadLUTs()
-{
-	if (!s_lutLoaded)
-	{
- 	  // First load the built-in (Known Vanilla) ACTI Forms and VM Script Variables
-	  CAHZVanillaFormTable::LoadACTIForms(CAHZFormLookup::Instance());
-	  CAHZVanillaFormTable::LoadVMVariables(CAHZFormLookup::Instance());
-
-	  // Second load any addional forms added externally
-	  _MESSAGE("Processing .mhud Files...");
-
-	  // Read all .mhuf files and load in the lookup tables
-	  string skyrimDataPath = CAHZUtilities::GetSkyrimDataPath();
-
-	  // Get all .mhud files from the skyrim data folder
-	  vector<string> mHudFiles = CAHZUtilities::GetMHudFileList(skyrimDataPath);
-
-	  if (!mHudFiles.size())
-	  {
-		 _MESSAGE("INFO: No .mHud files detected, skipping.");
-	  }
-	  else
-	  {  
-		 // Load the external ACTI Forms and VM Script Variables 
-		 CAHZExternalFormTable::LoadACTIForms(CAHZFormLookup::Instance(), mHudFiles);
-		 CAHZExternalFormTable::LoadVMVariables(CAHZFormLookup::Instance(), mHudFiles);
-	     
-		 _MESSAGE("%d .mHud file(s) processed", mHudFiles.size());
-	  }
-	}
-	s_lutLoaded = true;
-}
 
 EventResult AHZEventHandler::ReceiveEvent(MenuOpenCloseEvent * evn, EventDispatcher<MenuOpenCloseEvent> * dispatcher)
 {
    string menuName(evn->menuName.data);
-	LoadLUTs();
    if ((ahzMenuLoaded == false) && (menuName == "HUD Menu") && (evn->opening))
    {
       GFxMovieView *view = MenuManager::GetSingleton()->GetMovieView(&evn->menuName);
@@ -86,6 +49,12 @@ EventResult AHZEventHandler::ReceiveEvent(MenuOpenCloseEvent * evn, EventDispatc
       }
    }
 
+   return kEvent_Continue;
+}
+
+EventResult AHZCrosshairRefEventHandler::ReceiveEvent(SKSECrosshairRefEvent * evn, EventDispatcher<SKSECrosshairRefEvent> * dispatcher)
+{
+   g_ahzTargetReference = evn->crosshairRef;
    return kEvent_Continue;
 }
 

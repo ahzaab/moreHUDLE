@@ -47,14 +47,14 @@ bool CAHZScaleform::GetIsKnownEnchantment(TESObjectREFR *targetRef)
 
       if (enchantment)
       {
-         if ((enchantment->flags & 0x40) == 0x40) {
+         if ((enchantment->flags & TESForm::kFlagPlayerKnows) == TESForm::kFlagPlayerKnows) {
             return true;
          }
 
-		 EnchantmentItem * baseEnchantment = (EnchantmentItem *)(enchantment->data.unk20);
+		 EnchantmentItem * baseEnchantment = (EnchantmentItem *)(enchantment->data.baseEnchantment);
          if (baseEnchantment)
          {
-            if ((baseEnchantment->flags & 0x40) == 0x40) {
+            if ((baseEnchantment->flags & TESForm::kFlagPlayerKnows) == TESForm::kFlagPlayerKnows) {
                return true;
             }
          }
@@ -80,21 +80,20 @@ double CAHZScaleform::GetActualDamage(AHZWeaponData *weaponData)
 
    if (pPC)
    {
-      PlayerCharacter::ObjDesc objDesc;
-	  objDesc.form = weaponData->equipData.pForm;
+      InventoryEntryData objDesc(weaponData->equipData.pForm, 0);
 
       // Allocate a list to send
-		objDesc.extraData = new tList<BaseExtraList>();
+		objDesc.extendDataList = new tList<BaseExtraList>();
 
 		if (weaponData->equipData.pExtraData)
 		{
-			objDesc.extraData->Insert(weaponData->equipData.pExtraData);
+			objDesc.extendDataList->Insert(weaponData->equipData.pExtraData);
 		}
 
       float fDamage = CALL_MEMBER_FN(pPC, GetDamage)(&objDesc);
 
       // Delete the allocated dummy list
-      delete objDesc.extraData;
+      delete objDesc.extendDataList;
 
       // This could be rounded, but the the script decide
       return mRound(fDamage);
@@ -112,21 +111,20 @@ double CAHZScaleform::GetActualArmorRating(AHZArmorData* armorData)
 
    if (pPC)
    {
-	  PlayerCharacter::ObjDesc objDesc;
-      objDesc.form = armorData->equipData.pForm;
+	  InventoryEntryData objDesc(armorData->equipData.pForm, 0);
 
       // Allocate a dummy list so skyrim does not crash. For armor information
       // skyrim doesn't appear to need the list
-	  objDesc.extraData = new tList<BaseExtraList>();
+	  objDesc.extendDataList = new tList<BaseExtraList>();
       if (armorData->equipData.pExtraData)
       {
-         objDesc.extraData->Insert(armorData->equipData.pExtraData);
+         objDesc.extendDataList->Insert(armorData->equipData.pExtraData);
       }
 
       double fRating = CALL_MEMBER_FN(pPC, GetArmorValue)(&objDesc);
 
       // Delete the allocated dummy list
-      delete objDesc.extraData;
+      delete objDesc.extendDataList;
 
       // This could be rounded, but the the script decide
       return mRound(fRating);
@@ -568,7 +566,7 @@ AlchemyItem * CAHZScaleform::GetAlchemyItemFromLeveledList(TESForm *thisObject)
       {
          for (int i = 0; i < lvli->leveledList.length; i++)
          {
-			 TESForm *itemform = (TESForm *)lvli->leveledList.entries[i].unk0;
+			 TESForm *itemform = (TESForm *)lvli->leveledList.entries[i].form;
             if (itemform)
             {
                if (itemform->formType == kFormType_Potion)
@@ -612,7 +610,7 @@ IngredientItem* CAHZScaleform::GetIngredientFromLeveledList(TESForm *thisObject)
       {
          for (int i = 0; i < lvli->leveledList.length; i++)
          {
-			 TESForm *itemform = (TESForm *)lvli->leveledList.entries[i].unk0;
+			 TESForm *itemform = (TESForm *)lvli->leveledList.entries[i].form;
             if (itemform)
             {
                if (itemform->formType == kFormType_Ingredient)
@@ -694,7 +692,7 @@ IngredientItem* CAHZScaleform::GetIngredient(TESForm *thisObject)
             // Get the first form and see if it is an ingredient
             if (lvli->forms.count > 0)
             {
-				TESForm *itemform = (TESForm *)lvli->forms.arr.entries[0];
+				TESForm *itemform = (TESForm *)lvli->forms[0];
                if (itemform)
                {
                   IngredientItem *ingredient = DYNAMIC_CAST(itemform, TESForm, IngredientItem);
@@ -739,7 +737,7 @@ IngredientItem* CAHZScaleform::GetIngredient(TESForm *thisObject)
             // Get the first form and see if it is an ingredient
             if (lvli->forms.count > 0)
             {
-				TESForm *itemform = (TESForm *)lvli->forms.arr.entries[0];
+				TESForm *itemform = (TESForm *)lvli->forms[0];
                if (itemform)
                {
                   IngredientItem *ingredient = DYNAMIC_CAST(itemform, TESForm, IngredientItem);
@@ -816,7 +814,7 @@ AlchemyItem* CAHZScaleform::GetAlchemyItem(TESForm *thisObject)
             // Get the first form and see if it is an ingredient
             if (lvli->forms.count > 0)
             {
-               TESForm *itemform = (TESForm *)lvli->forms.arr.entries[0];
+               TESForm *itemform = (TESForm *)lvli->forms[0];
                if (itemform)
                {
                   AlchemyItem *alchmyItem = DYNAMIC_CAST(itemform, TESForm, AlchemyItem);
@@ -861,7 +859,7 @@ AlchemyItem* CAHZScaleform::GetAlchemyItem(TESForm *thisObject)
             // Get the first form and see if it is an ingredient
             if (lvli->forms.count > 0)
             {
-               TESForm *itemform = (TESForm *)lvli->forms.arr.entries[0];
+               TESForm *itemform = (TESForm *)lvli->forms[0];
                if (itemform)
                {
                   AlchemyItem *alchmyItem = DYNAMIC_CAST(itemform, TESForm, AlchemyItem);
@@ -1607,40 +1605,6 @@ void CAHZScaleform::ProcessValueToWeight(TESObjectREFR* targetObject, GFxFunctio
    SetResultString(args, valueToWeight.c_str());
 };
 
-bool GetIsNthEffectKnown(IngredientItem* thisMagic, UInt32 index)
-{
-	bool isKnown = false;
-	
-	enum	// type - these are flags
-	{
-		kType_NoEffect	=		0,
-		kType_FirstEffect =		1 << 0,
-		kType_SecondEffect =	1 << 1,
-		kType_ThirdEffect =		1 << 2,
-		kType_FourthEffect =	1 << 3
-	};
-	
-	if (!thisMagic)
-		return false;
-	switch (index)
-	{
-	case 0:
-		isKnown = (((thisMagic->unkA8.unk00 & 0xFF) & kType_FirstEffect)== kType_FirstEffect);
-		break;
-	case 1:
-		isKnown = (((thisMagic->unkA8.unk00 & 0xFF) & kType_SecondEffect) == kType_SecondEffect);
-		break;
-	case 2:
-		isKnown = (((thisMagic->unkA8.unk00 & 0xFF) & kType_ThirdEffect) == kType_ThirdEffect);
-		break;
-	case 3:
-		isKnown = (((thisMagic->unkA8.unk00 & 0xFF) & kType_FourthEffect) == kType_FourthEffect);
-		break;
-	default:
-		break;
-	}
-	return isKnown;
-}
 
 void CAHZScaleform::ProcessBookSkill(TESObjectREFR* targetObject, GFxFunctionHandler::Args *args)
 {
