@@ -61,15 +61,15 @@ EventResult AHZCrosshairRefEventHandler::ReceiveEvent(SKSECrosshairRefEvent * ev
 //RelocAddr<uintptr_t> Enemy_Update_Hook_Target(Enemy_Update_Hook_Base + 0x44);
 
 // Hook to install hud widgets
-static const UInt32 kEnemyUpdateHook_Base = 0x00861B24;
-static const UInt32 kEnemyUpdateHook_Entry_retn = kEnemyUpdateHook_Base + 0x06;
+static const UInt32 kEnemyUpdateHook_Base = 0x00862159;
+static const UInt32 kEnemyUpdateHook_Entry_retn = kEnemyUpdateHook_Base + 0x05;
 
 typedef bool (* _LookupREFRByHandle_AHZ)(UInt32 * refHandle, NiPointer<TESObjectREFR> *refrOut);
 const _LookupREFRByHandle_AHZ		LookupREFRByHandle_AHZ = (_LookupREFRByHandle_AHZ)(UInt32)(LookupREFRByHandle);
 
-void __stdcall EnemyHealth_Update_Hook(UInt32 * refHandle, NiPointer<TESObjectREFR> *refrOut)
+void __fastcall EnemyHealth_Update_Hook(TESObjectREFR *refrOut)
 {
-   TESObjectREFR * reference = *refrOut;
+	TESObjectREFR * reference = refrOut;
    if (!reference)
    {
       return;
@@ -107,8 +107,29 @@ __declspec(naked) void InstallEnemyUpdateHook_Entry(void)
 {
 	__asm
 	{
-		call    LookupREFRByHandle_AHZ
+
+		pushad
+		push edi
+		push ecx
+		push edx
+		push eax
+		mov     ecx, edi  //edi is NiPointer<TESObjectREFR> *refrOut enemy ref
 		call	EnemyHealth_Update_Hook
+		pop eax
+		pop edx
+		pop ecx
+		pop edi
+		popad
+
+		// Restore original code
+		//push    eax
+		//mov     ecx, edi
+		//call    edx
+
+push    ebp
+mov     ecx, edi
+call    eax
+
 		jmp		[kEnemyUpdateHook_Entry_retn]
 	}
 }

@@ -47,7 +47,7 @@ SKSEScaleformInterface* g_scaleform = NULL;
 SKSEMessagingInterface *g_skseMessaging = NULL;
 AHZEventHandler menuEvent;
 AHZCrosshairRefEventHandler crossHairEvent;
-#define PLUGIN_VERSION  (30603)
+#define PLUGIN_VERSION  (30000)
 
 // Just initialize to start routing to the console window
 CAHZDebugConsole theDebugConsole;
@@ -252,7 +252,7 @@ extern "C"
 {
    bool SKSEPlugin_Query(const SKSEInterface * skse, PluginInfo * info)
    {
-      gLog.OpenRelative(CSIDL_MYDOCUMENTS, "\\My Games\\Skyrim Special Edition\\SKSE\\moreHUDSE.log");
+      gLog.OpenRelative(CSIDL_MYDOCUMENTS, "\\My Games\\Skyrim\\SKSE\\moreHUD.log");
       gLog.SetPrintLevel(IDebugLog::kLevel_VerboseMessage);
       gLog.SetLogLevel(IDebugLog::kLevel_Message);
 
@@ -270,13 +270,13 @@ extern "C"
 
          return false;
       }
-      else if (skse->runtimeVersion != (PACKED_SKSE_VERSION))
+      else if (skse->runtimeVersion != MAKE_SKYRIM_VERSION(9, 32, 0))
       {
          _ERROR("unsupported runtime version %08X", skse->runtimeVersion);
 
          return false;
       }
-      else if (SKSE_VERSION_RELEASEIDX < 44)
+      else if (SKSE_VERSION_RELEASEIDX < 48)
       {
          _ERROR("unsupported skse release index %08X", SKSE_VERSION_RELEASEIDX);
 
@@ -297,11 +297,19 @@ extern "C"
          return false;
       }
 
+      g_skseMessaging = (SKSEMessagingInterface *)skse->QueryInterface(kInterface_Messaging);
+      if (!g_skseMessaging)
+      {
+         _ERROR("couldn't get messaging interface");
+         return false;
+      }
+
+
       // ### do not do anything else in this callback
       // ### only fill out PluginInfo and return true/false
 
       // supported runtime version
-      return true;
+	  return true;
    }
 
    bool SKSEPlugin_Load(const SKSEInterface * skse)
@@ -312,6 +320,8 @@ extern "C"
 	   }
 
 	   Sleep(1000 * 2);
+
+
 
       // register scaleform callbacks
       g_scaleform->Register("AHZmoreHUDPlugin", RegisterScaleform);
