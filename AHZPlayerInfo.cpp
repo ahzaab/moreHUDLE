@@ -86,7 +86,7 @@ UInt32 CAHZPlayerInfo::GetItemAmount(UInt32 formID)
 		UInt32 length = pXContainerChanges->data->objList->Count();
 		for (int i = 0; i < length; i++)
 		{
-			ExtraContainerChanges::EntryData * data = pXContainerChanges->data->objList->GetNthItem(i);
+			InventoryEntryData * data = pXContainerChanges->data->objList->GetNthItem(i);
 			if (data && data->type && data->type->formID == formID)
 			{
 				itemVistor.itemAmount += data->countDelta;
@@ -111,10 +111,12 @@ UInt32 CAHZPlayerInfo::GetGoldAmount(void)
 
 TESObjectREFR * CAHZPlayerInfo::GetTargetRef()
 {
-	NiPointer<TESObjectREFR> * targetedRef = NULL;
-	UInt32 tempHandle = *targetRefHandle;
-	LookupREFRByHandle_AHZ(&tempHandle, targetedRef);
-	return targetedRef->m_pObject;
+	//NiPointer<TESObjectREFR> * targetedRef = NULL;
+	//UInt32 tempHandle = *targetRefHandle;
+	//LookupREFRByHandle_AHZ(&tempHandle, targetedRef);
+	//return targetedRef->m_pObject;
+
+	return g_ahzTargetReference;
 }
 
 bool CAHZPlayerInfo::GetIsInCombat(void)
