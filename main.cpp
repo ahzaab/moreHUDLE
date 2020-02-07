@@ -314,12 +314,12 @@ extern "C"
 
    bool SKSEPlugin_Load(const SKSEInterface * skse)
    {
-	   while (!IsDebuggerPresent())
-	   {
-	      Sleep(10);
-	   }
+	   //while (!IsDebuggerPresent())
+	   //{
+	   //   Sleep(10);
+	   //}
 
-	   Sleep(1000 * 2);
+	   //Sleep(1000 * 2);
 
 
 
