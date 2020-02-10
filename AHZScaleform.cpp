@@ -957,24 +957,24 @@ void CAHZScaleform::ProcessEnemyInformation(GFxFunctionHandler::Args * args)
    actorData.Level = 0;
    actorData.IsSentient = 0;
    UInt16 playerLevel = 0;
+   UInt32 soulType = 0;
 
    if (pPC)
    {
       actorData = GetCurrentEnemyData();
-	  if (actorData.Level >= 1)
+	  if (actorData.Level)
       {
            playerLevel = CALL_MEMBER_FN(pPC, GetLevel)();
+		   if (!actorData.IsSentient){  // If sentient, then don't bother all sentients have grand soul gem levels
+				soulType = CAHZActorInfo::GetSoulType(actorData.Level, actorData.IsSentient);
+		   }
       }
    }
    
-   UInt32 soulType = 0;
-   if (actorData.Level){
-		soulType = CAHZActorInfo::GetSoulType(actorData.Level, actorData.IsSentient);
-   }
-
    GFxValue obj;
    args->movie->CreateObject(&obj);
-   if (actorData.Level){
+   if (actorData.Level)
+   {
 	   RegisterNumber(&obj, "EnemyLevel", actorData.Level);
 	   RegisterNumber(&obj, "PlayerLevel", playerLevel);
 	   string soulName = GetSoulLevelName((UInt8)soulType);
@@ -983,11 +983,7 @@ void CAHZScaleform::ProcessEnemyInformation(GFxFunctionHandler::Args * args)
 			RegisterString(&obj, args->movie, "Soul", soulName.c_str());
 	   }
    }
-   else{
-	   RegisterNumber(&obj, "EnemyLevel", 0);
-	   RegisterNumber(&obj, "PlayerLevel", 0);
-	   RegisterString(&obj, args->movie, "Soul", string("").c_str());
-   }
+
    if (args->args[0].HasMember("outObj"))
    {
       args->args[0].SetMember("outObj", &obj);

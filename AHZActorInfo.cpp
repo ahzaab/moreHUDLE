@@ -15,6 +15,5 @@ UInt32 CAHZActorInfo::IsSentient(Actor *actor)
 UInt32 CAHZActorInfo::GetSoulType(UInt16 actorLevel, UInt8 isActorSentient)
 {
 	UInt32 type = pGetActorSoulType(actorLevel, isActorSentient);
-
 	return type;
 }
