@@ -115,7 +115,7 @@ void __fastcall EnemyHealth_Update_Hook(TESObjectREFR *refrOut)
       return;
    }
    UInt16 npcLevel = 0;
-
+   UInt32 isSentient = 0;
    if (reference)
    {
       if (reference->baseForm->formType == kFormType_NPC ||
@@ -125,18 +125,20 @@ void __fastcall EnemyHealth_Update_Hook(TESObjectREFR *refrOut)
          if (pNPC)
          {
             npcLevel = CALL_MEMBER_FN(pNPC, GetLevel)();
+			isSentient = CAHZActorInfo::IsSentient(pNPC);
          }
       }
    }
 
    ahzTargetHandle.Lock();
-   ahzTargetHandle.m_data = npcLevel;
+   ahzTargetHandle.m_data.Level = npcLevel;
+   ahzTargetHandle.m_data.IsSentient = isSentient;
    ahzTargetHandle.Release();
 }
 //RelocPtr<SimpleLock>		globalMenuStackLock(0x1EE4A60);
-UInt16 GetCurrentEnemyLevel()
+CAHZActorData GetCurrentEnemyData()
 {
-   UInt16 refr = 0;
+   CAHZActorData refr;
    ahzTargetHandle.Lock();
    refr = ahzTargetHandle.m_data;
    ahzTargetHandle.Release();

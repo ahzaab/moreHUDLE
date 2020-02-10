@@ -1,4 +1,4 @@
-#include "resource2.h"
+#include "resource.h"
 
 1 VERSIONINFO
  FILEVERSION 0,3,0,0

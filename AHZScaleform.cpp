@@ -19,11 +19,35 @@
 #include "AHZScaleformHook.h"
 #include "AHZFormLookup.h"
 #include "AHZUtilities.h"
+#include "AHZActorInfo.h"
 #include <regex>
+#include <vector>
+#include <map>
+#include <tuple>
+
+static std::map<UInt8, string> m_soulMap;
 
 float CAHZScaleform::GetBaseDamage(TESAmmo* pthisAmmo)
 {
    return pthisAmmo->settings.damage;
+}
+
+string CAHZScaleform::GetSoulLevelName(UInt8 soulLevel)
+{
+	if (m_soulMap.empty()) //Cache it,  No need to hit the game setting every time
+	{
+		SettingCollectionMap	* settings = *g_gameSettingCollection;
+		m_soulMap[1] = string(settings->Get("sSoulLevelNamePetty")->data.s);
+		m_soulMap[2] = string(settings->Get("sSoulLevelNameLesser")->data.s);
+		m_soulMap[3] = string(settings->Get("sSoulLevelNameCommon")->data.s);
+		m_soulMap[4] = string(settings->Get("sSoulLevelNameGreater")->data.s);
+		m_soulMap[5] = string(settings->Get("sSoulLevelNameGrand")->data.s);
+	}	
+	if (m_soulMap.find(soulLevel) == m_soulMap.end())
+	{
+		return string("");
+	}	
+	return m_soulMap[soulLevel];
 }
 
 bool CAHZScaleform::GetIsKnownEnchantment(TESObjectREFR *targetRef)
@@ -576,23 +600,6 @@ AlchemyItem * CAHZScaleform::GetAlchemyItemFromLeveledList(TESForm *thisObject)
                }
             }
          }
-         //for (int i = 0; i < lvli->leveledList.length; i++)
-         //{
-         //   TESForm *itemform = (TESForm *)lvli->leveledList.entries[i].form;
-         //   if (itemform)
-         //   {
-         //      if (itemform->formType == kFormType_Ingredient)
-         //      {
-         //         IngredientItem *ingredient = DYNAMIC_CAST(itemform, TESForm, IngredientItem);
-         //         return ingredient;
-         //      }
-         //      // Nested leveled lists
-         //      else if (itemform->formType == kFormType_LeveledItem)
-         //      {
-         //         return GetIngredientFromLeveledList(itemform);
-         //      }
-         //   }
-         //}
       }
    }
 
@@ -620,23 +627,6 @@ IngredientItem* CAHZScaleform::GetIngredientFromLeveledList(TESForm *thisObject)
                }
             }
          }
-         //for (int i = 0; i < lvli->leveledList.length; i++)
-         //{
-         //   TESForm *itemform = (TESForm *)lvli->leveledList.entries[i].form;
-         //   if (itemform)
-         //   {
-         //      if (itemform->formType == kFormType_Ingredient)
-         //      {
-         //         IngredientItem *ingredient = DYNAMIC_CAST(itemform, TESForm, IngredientItem);
-         //         return ingredient;
-         //      }
-         //      // Nested leveled lists
-         //      else if (itemform->formType == kFormType_LeveledItem)
-         //      {
-         //         return GetIngredientFromLeveledList(itemform);
-         //      }
-         //   }
-         //}
       }
    }
 
@@ -924,19 +914,11 @@ string CAHZScaleform::GetTargetName(TESForm *thisObject)
       TESSoulGem *gem = DYNAMIC_CAST(reference->baseForm, TESForm, TESSoulGem);
       if (gem)
       {
-         char * soulName = NULL;
+         string soulName("");
          SettingCollectionMap	* settings = *g_gameSettingCollection;
-         switch (gem->soulSize)
-         {
-         case 1: soulName = settings->Get("sSoulLevelNamePetty")->data.s; break;
-         case 2: soulName = settings->Get("sSoulLevelNameLesser")->data.s; break;
-         case 3: soulName = settings->Get("sSoulLevelNameCommon")->data.s; break;
-         case 4: soulName = settings->Get("sSoulLevelNameGreater")->data.s; break;
-         case 5: soulName = settings->Get("sSoulLevelNameGrand")->data.s; break;
-         default: break;
-         }
+		 soulName = GetSoulLevelName(gem->soulSize);
 
-         if (soulName)
+		 if (soulName.length())
          {
             name.append(" (");
             name.append(soulName);
@@ -971,24 +953,41 @@ static UInt32 lasttargetRef;
 void CAHZScaleform::ProcessEnemyInformation(GFxFunctionHandler::Args * args)
 {
    PlayerCharacter* pPC = (*g_thePlayer);
-   UInt16 npcLevel = 0;
+   CAHZActorData actorData;
+   actorData.Level = 0;
+   actorData.IsSentient = 0;
    UInt16 playerLevel = 0;
 
    if (pPC)
    {
-      npcLevel = GetCurrentEnemyLevel();
-      if (npcLevel >= 1)
+      actorData = GetCurrentEnemyData();
+	  if (actorData.Level >= 1)
       {
-		  //PORTTODO
-         //playerLevel = CALL_MEMBER_FN(pPC, GetLevel)();
-		  playerLevel = 1;
+           playerLevel = CALL_MEMBER_FN(pPC, GetLevel)();
       }
+   }
+   
+   UInt32 soulType = 0;
+   if (actorData.Level){
+		soulType = CAHZActorInfo::GetSoulType(actorData.Level, actorData.IsSentient);
    }
 
    GFxValue obj;
    args->movie->CreateObject(&obj);
-   RegisterNumber(&obj, "EnemyLevel", npcLevel);
-   RegisterNumber(&obj, "PlayerLevel", playerLevel);
+   if (actorData.Level){
+	   RegisterNumber(&obj, "EnemyLevel", actorData.Level);
+	   RegisterNumber(&obj, "PlayerLevel", playerLevel);
+	   string soulName = GetSoulLevelName((UInt8)soulType);
+	   if (soulType && soulName.length())
+	   {
+			RegisterString(&obj, args->movie, "Soul", soulName.c_str());
+	   }
+   }
+   else{
+	   RegisterNumber(&obj, "EnemyLevel", 0);
+	   RegisterNumber(&obj, "PlayerLevel", 0);
+	   RegisterString(&obj, args->movie, "Soul", string("").c_str());
+   }
    if (args->args[0].HasMember("outObj"))
    {
       args->args[0].SetMember("outObj", &obj);
@@ -1127,89 +1126,6 @@ string CAHZScaleform::GetValueToWeight(TESObjectREFR *theObject, const char * st
 	desc.append("<\\FONT>");
 
 	return desc;
-
-
-	//string desc;
-
-	//if (!theObject)
-	//	return desc;
-
-	//if (!theObject->baseForm)
-	//	return desc;
-
-	//if (!stringFromHUD)
-	//	return desc;
-
-	//char *end;
-	//float weightValue = 0.0;
-	//float valueValue = 0.0;
-	//std::istringstream iss(stringFromHUD);
-	//std::string throwaway;
-
-	//vector<string> parts;
-	//int i = 0;
-	//// Get the weight and value from the HUD text since there is no decoded way (reliably) to get the value for all forms and references
-	//do 
-	//{
-	//	parts.push_back("");
-	//} while (iss >> parts[i++]); // stream the different fields.  THe weight and height are the last
-	//
-	//if (parts.size() < 4)
-	//{
-	//	return desc;
-	//}
-
-	//// Remove the last empty string if one exists
-	//if (parts[parts.size() - 1] == "")
-	//{
-	//	parts.pop_back();
-	//}
-
-	//// check the size again
-	//if (parts.size() < 4)
-	//{
-	//	return desc;
-	//}
-
-	//// The last value should be the "Value"
-	//// The third from last should be the weight
-	//weightValue = atof(parts[parts.size() - 3].c_str());
-	//valueValue = atof(parts[parts.size() - 1].c_str());
-
-	//// Don't show a neg or 0 ratio, its pointless
-	//if ((mRound(weightValue * 100) / 100) <= 0.0 || (mRound(valueValue * 100) / 100) <= 0.0)
-	//{
-	//	return desc;
-	//}
-
-	//float vW = valueValue / weightValue;
-
-	//// Add the VW label
-	//desc.append("<FONT FACE=\"$EverywhereMediumFont\"SIZE=\"15\"COLOR=\"#999999\"KERNING=\"0\">     ");
-	//desc.append(vmTranslated);
-	//desc.append(" <\\FONT>");
-
-	//char floatHold[64];
-	//size_t size = 64;
-
-	////Rounding trick
-	//sprintf_s(floatHold, size, "%.2f", vW);
-	//vW = strtof(floatHold, &end);
-
-	//if (vW < 1.0)
-	//{
-	//	sprintf_s(floatHold, size, "%.1g", vW);
-	//}
-	//else
-	//{
-	//	sprintf_s(floatHold, size, "%.0f", vW);
-	//}
-
-	//desc.append("<FONT FACE=\"$EverywhereBoldFont\"SIZE=\"24\"COLOR=\"#FFFFFF\"KERNING=\"0\">");
-	//desc.append(floatHold);
-	//desc.append("<\\FONT>");
- //  
-	//return desc;
 };
 
 string CAHZScaleform::GetBookSkill(TESObjectREFR *theObject)

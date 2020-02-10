@@ -741,6 +741,14 @@
 			</Filter>
 		</Filter>
 		<File
+			RelativePath=".\AHZActorInfo.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\AHZActorInfo.h"
+			>
+		</File>
+		<File
 			RelativePath=".\AHZArmorInfo.cpp"
 			>
 		</File>
@@ -846,6 +854,10 @@
 		</File>
 		<File
 			RelativePath=".\PluginProcessInfo.h"
+			>
+		</File>
+		<File
+			RelativePath=".\resource.h"
 			>
 		</File>
 		<File

@@ -83,6 +83,7 @@ private:
    static AlchemyItem* GetAlchemyItem(TESForm *initialTarget);
    static AlchemyItem * GetAlchemyItemFromLeveledList(TESForm *thisObject);
    static SpellItem* GetSpellItem(TESForm *initialTarget);
+   static string GetSoulLevelName(UInt8 soulLevel);
 
    // const char * GetTargetName(TESObjectREFR *thisObject);
    static bool CanPickUp(UInt32 formType);

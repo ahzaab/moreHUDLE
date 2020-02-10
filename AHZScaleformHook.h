@@ -1,7 +1,10 @@
 #pragma once
-#include "skse/PapyrusEvents.h"
+#pragma once
 
-UInt16 GetCurrentEnemyLevel();
+#include "skse/PapyrusEvents.h"
+#include "AHZActorInfo.h"
+
+CAHZActorData GetCurrentEnemyData();
 extern TESObjectREFR *g_ahzTargetReference;
 
 class AHZEventHandler : public BSTEventSink <MenuOpenCloseEvent> {
@@ -15,7 +18,7 @@ class AHZCrosshairRefEventHandler : public BSTEventSink <SKSECrosshairRefEvent>
 };
 
 
-class SafeEnemyLevelDataHolder: public SafeDataHolder<UInt16>
+class SafeEnemyLevelDataHolder: public SafeDataHolder<CAHZActorData>
 {
 public:
    SafeEnemyLevelDataHolder() {};
