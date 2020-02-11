@@ -50,7 +50,24 @@ string CAHZScaleform::GetSoulLevelName(UInt8 soulLevel)
 	return m_soulMap[soulLevel];
 }
 
-bool CAHZScaleform::GetIsKnownEnchantment(TESObjectREFR *targetRef)
+bool MagicDisallowEnchanting(BGSKeywordForm *pKeywords)
+{
+	if (pKeywords)
+	{
+		for (UInt32 k = 0; k < pKeywords->numKeywords; k++) {
+			if (pKeywords->keywords[k]) {
+				string keyWordName = string(pKeywords->keywords[k]->keyword.Get());
+				if (keyWordName == "MagicDisallowEnchanting")
+				{
+					return true;  // Is enchanted, but cannot be enchanted by player
+				}
+			}
+		}
+	}
+	return false;
+}
+
+UInt32 CAHZScaleform::GetIsKnownEnchantment(TESObjectREFR *targetRef)
 {
    PlayerCharacter* pPC = (*g_thePlayer);
    TESForm *baseForm;
@@ -72,15 +89,23 @@ bool CAHZScaleform::GetIsKnownEnchantment(TESObjectREFR *targetRef)
       if (enchantment)
       {
          if ((enchantment->flags & TESForm::kFlagPlayerKnows) == TESForm::kFlagPlayerKnows) {
-            return true;
+			 return MagicDisallowEnchanting(DYNAMIC_CAST(enchantment, EnchantmentItem, BGSKeywordForm)) ? 2 : 1;
          }
+		else if (MagicDisallowEnchanting(DYNAMIC_CAST(enchantment, EnchantmentItem, BGSKeywordForm)))
+		{
+			return 2;
+		}
 
 		 EnchantmentItem * baseEnchantment = (EnchantmentItem *)(enchantment->data.baseEnchantment);
          if (baseEnchantment)
          {
             if ((baseEnchantment->flags & TESForm::kFlagPlayerKnows) == TESForm::kFlagPlayerKnows) {
-               return true;
+               return MagicDisallowEnchanting(DYNAMIC_CAST(baseEnchantment, EnchantmentItem, BGSKeywordForm)) ? 2 : 1;
             }
+			else if (MagicDisallowEnchanting(DYNAMIC_CAST(baseEnchantment, EnchantmentItem, BGSKeywordForm)))
+			{
+				return 2;
+			}
          }
       }
 
@@ -88,11 +113,14 @@ bool CAHZScaleform::GetIsKnownEnchantment(TESObjectREFR *targetRef)
       // know the enchantment
       if (wasExtra)
       {
-         return true;
+         return 1;
       }
+	  else if (enchantable){
+		return MagicDisallowEnchanting(DYNAMIC_CAST(enchantable, TESEnchantableForm, BGSKeywordForm)) ? 2 : 0;
+	  }
 
    }
-   return false;
+   return 0;
 }
 
 double CAHZScaleform::GetActualDamage(AHZWeaponData *weaponData)

@@ -185,7 +185,7 @@ public:
          args->result->SetBool(false);
          return;
       }
-      args->result->SetBool(CAHZScaleform::GetIsKnownEnchantment(pTargetReference));
+	  args->result->SetNumber(CAHZScaleform::GetIsKnownEnchantment(pTargetReference));
    }
 };
 
@@ -225,7 +225,7 @@ void EventListener(SKSEMessagingInterface::Message* msg)
       CAHZVanillaFormTable::LoadVMVariables(CAHZFormLookup::Instance());
 
       // Second load any addional forms added externally
-      _MESSAGE("Processing .mhud Files...");
+      _MESSAGE("Processing any third party .mhud files that may exist...");
 
       // Read all .mhuf files and load in the lookup tables
       string skyrimDataPath = CAHZUtilities::GetSkyrimDataPath();
@@ -235,7 +235,7 @@ void EventListener(SKSEMessagingInterface::Message* msg)
 
       if (!mHudFiles.size())
       {
-         _MESSAGE("INFO: No .mHud files detected, skipping.");
+         _MESSAGE("No third party .mHud files where detected.");
       }
       else
       {  
@@ -243,8 +243,10 @@ void EventListener(SKSEMessagingInterface::Message* msg)
          CAHZExternalFormTable::LoadACTIForms(CAHZFormLookup::Instance(), mHudFiles);
          CAHZExternalFormTable::LoadVMVariables(CAHZFormLookup::Instance(), mHudFiles);
          
-         _MESSAGE("%d .mHud file(s) processed", mHudFiles.size());
+         _MESSAGE("%d third party .mHud file(s) processed", mHudFiles.size());
       }
+
+	  _MESSAGE("Third party .mHud file processing completed.");
    }
 }
 

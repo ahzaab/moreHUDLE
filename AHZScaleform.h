@@ -42,7 +42,7 @@ public:
    static void ProcessValueToWeight(TESObjectREFR* targetObject, GFxFunctionHandler::Args *args);
    static bool GetIsBookAndWasRead(TESObjectREFR *theObject);
    static void ProcessEnemyInformation(GFxFunctionHandler::Args *args);
-   static bool GetIsKnownEnchantment(TESObjectREFR *targetRef);
+   static UInt32 GetIsKnownEnchantment(TESObjectREFR *targetRef);
 
 
 private:
