@@ -182,7 +182,7 @@ public:
       // If the target is not valid or it can't be picked up by the player
       if (!pTargetReference)
       {
-         args->result->SetBool(false);
+         args->result->SetNumber(0);
          return;
       }
 	  args->result->SetNumber(CAHZScaleform::GetIsKnownEnchantment(pTargetReference));

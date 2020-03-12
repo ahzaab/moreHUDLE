@@ -86,5 +86,5 @@ private:
    static string GetSoulLevelName(UInt8 soulLevel);
 
    // const char * GetTargetName(TESObjectREFR *thisObject);
-   static bool CanPickUp(UInt32 formType);
+   static bool CanPickUp(TESForm* form);
 };

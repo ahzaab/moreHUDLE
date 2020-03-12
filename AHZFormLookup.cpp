@@ -1,5 +1,17 @@
 ﻿#include "AHZFormLookup.h"
 
+// Alignemnt comes from https://github.com/Ryan-rsm-McKenzie/CommonLibSSE/blob/master/include/RE/Projectile.h
+// Credit goes to Ryan.  I only needed the one item 
+class AHZProjectile : public TESObjectREFR
+{
+public:
+	UInt8	unk98[0x147 - 0x98];	// 98
+	InventoryEntryData *extraData;	// 148
+	UInt8	unk150[0x1B7 - 0x150];	// 150
+	TESAmmo * sourceAmmo;			// 1B8
+};
+
+
 // Base Address = 7FF62ACA0000
 //.text:00007FF62BEEF240; == == == == == == == = S U B R O U T I N E == == == == == == == == == == == == == == == == == == == =
 //.text:00007FF62BEEF240
@@ -185,6 +197,20 @@ TESForm * CAHZFormLookup::GetTESForm(TESObjectREFR * targetReference)
    {
       return GetAttachedForm(targetReference);
    }
+	else if (targetReference->baseForm->formType == kFormType_Projectile)
+	{
+		Projectile *pProjectile = (DYNAMIC_CAST(targetReference, TESObjectREFR, Projectile));
+
+		if (pProjectile) {
+			AHZProjectile *a = (AHZProjectile*)(pProjectile);
+			if (a)
+				return a->sourceAmmo;
+			else
+				return targetReference;
+		}
+		else
+			return targetReference;
+	}
    else
    {
       return targetReference;
