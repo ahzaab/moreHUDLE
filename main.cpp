@@ -67,7 +67,7 @@ class SKSEScaleform_GetTargetObjectData : public GFxFunctionHandler
 public:
    virtual void	Invoke(Args * args)
    {
-      CAHZScaleform::ProcessTargetObject(CAHZPlayerInfo::GetTargetRef(), args);
+      CAHZScaleform::ProcessTargetObject(CAHZPlayerInfo::GetTargetRef(), args); 
    }
 };
 
