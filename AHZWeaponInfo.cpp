@@ -20,20 +20,18 @@
 #include "skse/GameExtraData.h"
 #include <list>
 #include <algorithm>
-#include "PluginProcessInfo.h"
-#include "IngredientLUT.h"
-#include "SKSE/PapyrusObjectReference.h"
+#include "skse/PapyrusObjectReference.h"
 #include "AHZWeaponInfo.h"
-
+#include "AHZFormLookup.h"
 
 class ContainerAmmoVistor
-{	
+{
 public:
 	AHZWeaponData ammoData;
 	ContainerAmmoVistor()
 	{ }
-	
-	bool Accept(ExtraContainerChanges::EntryData* pEntryData)
+
+	bool Accept(InventoryEntryData* pEntryData)
 	{
 		if (pEntryData && pEntryData->type && pEntryData->type->GetFormType() == kFormType_Ammo)
 		{
@@ -77,7 +75,8 @@ AHZWeaponData CAHZWeaponInfo::GetWeaponInfo(TESObjectREFR * thisObject)
 		return weaponData;
 
 	if (thisObject->baseForm->GetFormType() != kFormType_Weapon &&
-		thisObject->baseForm->GetFormType() != kFormType_Ammo)
+		thisObject->baseForm->GetFormType() != kFormType_Ammo &&
+		thisObject->baseForm->GetFormType() != kFormType_Projectile)
 	{
 		return weaponData;
 	}
@@ -89,9 +88,17 @@ AHZWeaponData CAHZWeaponInfo::GetWeaponInfo(TESObjectREFR * thisObject)
 		weaponData.weapon = DYNAMIC_CAST(weaponData.equipData.pForm, TESForm, TESObjectWEAP);
 	else if (thisObject->baseForm->GetFormType() == kFormType_Ammo)
 		weaponData.ammo = DYNAMIC_CAST(weaponData.equipData.pForm, TESForm, TESAmmo);
+	else if (thisObject->baseForm->GetFormType() == kFormType_Projectile)
+	{
+		ArrowProjectile *asArrowProjectile = DYNAMIC_CAST(thisObject, TESObjectREFR, ArrowProjectile);
+		weaponData.ammo = DYNAMIC_CAST(AHZGetForm(thisObject), TESForm, TESAmmo);
+		if (asArrowProjectile) {
+			weaponData.equipData.pForm = weaponData.ammo;
+			weaponData.equipData.pExtraData = &asArrowProjectile->extraData;
+		}
+	}
 	return weaponData;
 }
-
 
 AHZWeaponData CAHZWeaponInfo::GetLeftHandWeapon(void)
 {
@@ -101,7 +108,7 @@ AHZWeaponData CAHZWeaponInfo::GetLeftHandWeapon(void)
 	{
 		TESForm * tempItem = pPC->GetEquippedObject(true);
 		if (tempItem && tempItem->GetFormType() == kFormType_Weapon)
-		{	
+		{
 			MatchByForm matcher(tempItem);
 			ExtraContainerChanges* containerChanges = static_cast<ExtraContainerChanges*>(pPC->extraData.GetByType(kExtraData_ContainerChanges));
 			if (!containerChanges)
@@ -123,7 +130,7 @@ AHZWeaponData CAHZWeaponInfo::GetRightHandWeapon(void)
 	{
 		TESForm * tempItem = pPC->GetEquippedObject(false);
 		if (tempItem && tempItem->GetFormType() == kFormType_Weapon)
-		{	
+		{
 			MatchByForm matcher(tempItem);
 			ExtraContainerChanges* containerChanges = static_cast<ExtraContainerChanges*>(pPC->extraData.GetByType(kExtraData_ContainerChanges));
 			if (!containerChanges)
@@ -147,7 +154,7 @@ AHZWeaponData CAHZWeaponInfo::GetEquippedAmmo(void)
 
 	PlayerCharacter* pPC = (*g_thePlayer);
 	if (pPC)
-	{			
+	{
 		ExtraContainerChanges* containerChanges = static_cast<ExtraContainerChanges*>(pPC->extraData.GetByType(kExtraData_ContainerChanges));
 		if (!containerChanges)
 			return weaponData;
@@ -161,6 +168,3 @@ AHZWeaponData CAHZWeaponInfo::GetEquippedAmmo(void)
 	}
 	return weaponData;
 }
-
-
-

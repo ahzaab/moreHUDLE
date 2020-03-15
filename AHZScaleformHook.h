@@ -1,3 +1,29 @@
 #pragma once
+#pragma once
 
-void Hooks_AHZHUDMenu_Commit(void);
+#include "skse/PapyrusEvents.h"
+#include "AHZActorInfo.h"
+
+CAHZActorData GetCurrentEnemyData();
+extern TESObjectREFR *g_ahzTargetReference;
+
+class AHZEventHandler : public BSTEventSink <MenuOpenCloseEvent> {
+
+   EventResult ReceiveEvent(MenuOpenCloseEvent * evn, EventDispatcher<MenuOpenCloseEvent> * dispatcher);
+};
+
+class AHZCrosshairRefEventHandler : public BSTEventSink <SKSECrosshairRefEvent>
+{
+   EventResult ReceiveEvent(SKSECrosshairRefEvent * evn, EventDispatcher<SKSECrosshairRefEvent> * dispatcher);
+};
+
+
+class SafeEnemyLevelDataHolder: public SafeDataHolder<CAHZActorData>
+{
+public:
+   SafeEnemyLevelDataHolder() {};
+   ~SafeEnemyLevelDataHolder() {};
+};
+
+
+void Hooks_EnemyUpdate_Commit(void);

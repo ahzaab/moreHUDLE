@@ -1,22 +1,22 @@
-#include "skse/GameReferences.h"
+﻿#include "skse/GameReferences.h"
 #include "skse/GameFormComponents.h"
 #include "skse/GameRTTI.h"
 #include "skse/GameForms.h"
 #include "skse/GameAPI.h"
 #include "skse/GameExtraData.h"
 #include "AHZPlayerInfo.h"
+#include "AHZScaleFormHook.h"
+#include "skse/Hooks_Gameplay.h"
 
 static UInt32 * const targetRefHandle = (UInt32 *)0x01B39A84;
-//static TESObjectREFR *targetedRef = NULL;
-
-//typedef  bool (__cdecl *GET_IS_IN_COMBAT)(int a1, int a2, PlayerCharacter *theActor);
-//static GET_IS_IN_COMBAT pGetIsInCombat = (GET_IS_IN_COMBAT)0x008DB020;
-
-typedef  bool (__fastcall *GET_IS_IN_COMBAT)(PlayerCharacter *theActor);
-static GET_IS_IN_COMBAT pGetIsInCombat = (GET_IS_IN_COMBAT)0x0074E5F0;
+typedef bool (* _LookupREFRByHandle_AHZ)(UInt32 * refHandle, NiPointer<TESObjectREFR> *refrOut);
+const _LookupREFRByHandle_AHZ		LookupREFRByHandle_AHZ = (_LookupREFRByHandle_AHZ)(UInt32)(LookupREFRByHandle);
 
 typedef  UInt32 (__fastcall *GET_GOLD_AMOUNT)(PlayerCharacter *theActor);
 static GET_GOLD_AMOUNT pGetGoldAmount = (GET_GOLD_AMOUNT)0x006A8190;
+
+typedef  bool (__fastcall *GET_IS_IN_COMBAT)(PlayerCharacter *theActor);
+static GET_IS_IN_COMBAT pGetIsInCombat = (GET_IS_IN_COMBAT)0x0074E5F0;
 
 class ContainerFindItemByID
 {
@@ -35,27 +35,6 @@ public:
 		return false;
 	}
 };
-
-/*class ContainerFindItemByReference
-{
-	TESObjectREFR *_theObject;
-public:
-	ContainerFindItemByReference(TESObjectREFR *theObject) :_theObject(theObject)
-	{ }
-
-	bool Accept(TESContainer::Entry* pEntry)
-	{
-		if (pEntry && pEntry->form && pEntry->form == _theObject->baseForm)
-		{
-			if (pEntry->data == _theObject->extraData.)
-				return true;
-			else
-				return false;
-		}
-
-		return false;
-	}
-};*/
 
 class ContainerItemVistor
 {	
@@ -107,7 +86,7 @@ UInt32 CAHZPlayerInfo::GetItemAmount(UInt32 formID)
 		UInt32 length = pXContainerChanges->data->objList->Count();
 		for (int i = 0; i < length; i++)
 		{
-			ExtraContainerChanges::EntryData * data = pXContainerChanges->data->objList->GetNthItem(i);
+			InventoryEntryData * data = pXContainerChanges->data->objList->GetNthItem(i);
 			if (data && data->type && data->type->formID == formID)
 			{
 				itemVistor.itemAmount += data->countDelta;
@@ -121,21 +100,23 @@ UInt32 CAHZPlayerInfo::GetItemAmount(UInt32 formID)
 
 UInt32 CAHZPlayerInfo::GetGoldAmount(void)
 {
-	//return CAHZPlayerInfo::GetItemAmount(0x0F);
-	PlayerCharacter* pPC = (*g_thePlayer);
-	if (pPC)
-	{	
-		return pGetGoldAmount(pPC);
-	}
-	return 0;
+   PlayerCharacter* pPC = (*g_thePlayer);
+   if (pPC)
+   {
+      return pGetGoldAmount(pPC);
+   }
+   return 0;
 }
+
 
 TESObjectREFR * CAHZPlayerInfo::GetTargetRef()
 {
-	TESObjectREFR * targetedRef = NULL;
-	UInt32 tempHandle = *targetRefHandle;
-	LookupREFRByHandle(&tempHandle, &targetedRef);
-	return targetedRef;
+	//NiPointer<TESObjectREFR> * targetedRef = NULL;
+	//UInt32 tempHandle = *targetRefHandle;
+	//LookupREFRByHandle_AHZ(&tempHandle, targetedRef);
+	//return targetedRef->m_pObject;
+
+	return g_ahzTargetReference;
 }
 
 bool CAHZPlayerInfo::GetIsInCombat(void)
