@@ -97,6 +97,7 @@ AHZWeaponData CAHZWeaponInfo::GetWeaponInfo(TESObjectREFR * thisObject)
 			weaponData.equipData.pExtraData = &asArrowProjectile->extraData;
 		}
 	}
+
 	return weaponData;
 }
 

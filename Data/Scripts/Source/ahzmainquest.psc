@@ -33,6 +33,11 @@ GlobalVariable Property AHZEnemyLevelMax  Auto
 GlobalVariable Property AHZEnemyLevelMin  Auto  
 GlobalVariable Property AHZShowEnchantmentKnown  Auto
 GlobalVariable Property AHZDisplayDelay  Auto  
+GlobalVariable Property AHZShowEnemyMagickaMeter Auto
+GlobalVariable Property AHZShowEnemyStaminaMeter Auto
+GlobalVariable Property AHZShowEnemyMagickaStats Auto
+GlobalVariable Property AHZShowEnemyStaminaStats Auto
+GlobalVariable Property AHZShowEnemyHealthStats Auto
 
 ; Keeps track of the revision
 int Property iVersion Auto
@@ -42,7 +47,7 @@ int Property iToggleOn Auto
 ; <--- Edit These value when updating
 int Property I_THIS_VERSION_MAJOR = 3 autoReadOnly
 int Property I_THIS_VERSION_MINOR = 0 autoReadOnly
-int Property I_THIS_VERSION_BUILD = 0 autoReadOnly
+int Property I_THIS_VERSION_BUILD = 1 autoReadOnly
 String Property WidgetRoot = "_root.AHZWidgetContainer.AHZWidget" autoReadOnly
 
 ; SKSE oldest supported release index
@@ -98,7 +103,7 @@ function RefreshWidgets()
 EndFunction
 
 function UpdateSettings(bool disable)
-    int[] intargs_200 = new int[22]
+    int[] intargs_200 = new int[27]
     float[] argsF = new float[2]
     float argF = 100.0
 
@@ -127,6 +132,11 @@ function UpdateSettings(bool disable)
         intargs_200[19] = 0
         intargs_200[20] = 0 
 	intargs_200[21] = 0 
+	    intargs_200[22] = 0   
+        intargs_200[23] = 0
+        intargs_200[24] = 0
+        intargs_200[25] = 0 
+	    intargs_200[26] = 0          
     else
         intargs_200[0] = AHZShowIngredientWidget.GetValueInt()
         intargs_200[1] = AHZShowEffectsWidget.GetValueInt()
@@ -150,6 +160,11 @@ function UpdateSettings(bool disable)
         intargs_200[19] = ((AHZDisplayDelay.GetValue() * 1000.0) as Int)
         intargs_200[20] = AHZShowEnemySoulLevel.GetValueInt()
 	intargs_200[21] = AHZShowBottomWidgetAlways.GetValueInt()         
+	    intargs_200[22] = AHZShowEnemyMagickaMeter.GetValueInt()     
+        intargs_200[23] = AHZShowEnemyStaminaMeter.GetValueInt()  
+        intargs_200[24] = AHZShowEnemyHealthStats.GetValueInt()  
+        intargs_200[25] = AHZShowEnemyStaminaStats.GetValueInt()  
+	    intargs_200[26] = AHZShowEnemyMagickaStats.GetValueInt()                    
     endif
 
     argsF[0] = AHZBottomWidgetXPercent.GetValue()

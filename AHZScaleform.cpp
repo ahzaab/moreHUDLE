@@ -617,7 +617,7 @@ AlchemyItem * CAHZScaleform::GetAlchemyItemFromLeveledList(TESForm *thisObject)
       TESLevItem *lvli = DYNAMIC_CAST(thisObject, TESForm, TESLevItem);
 
       // Get the first form and see if it is an ingredient
-      if (lvli->leveledList.length > 0)
+        if (lvli && lvli->leveledList.length > 0)
       {
          for (int i = 0; i < lvli->leveledList.length; i++)
          {
@@ -644,7 +644,7 @@ IngredientItem* CAHZScaleform::GetIngredientFromLeveledList(TESForm *thisObject)
       TESLevItem *lvli = DYNAMIC_CAST(thisObject, TESForm, TESLevItem);
 
       // Get the first form and see if it is an ingredient
-      if (lvli->leveledList.length > 0)
+        if (lvli && lvli->leveledList.length > 0)
       {
          for (int i = 0; i < lvli->leveledList.length; i++)
          {
@@ -675,15 +675,29 @@ IngredientItem* CAHZScaleform::GetIngredient(TESForm *thisObject)
       thisObject = reference->baseForm;
    }
 
+    if (!thisObject) {
+        return NULL;
+    }
+
    if (thisObject->GetFormType() == kFormType_Ingredient)
       return DYNAMIC_CAST(thisObject, TESForm, IngredientItem);
 
    if (thisObject->GetFormType() == kFormType_Flora)
    {
+        // Skip if harvested
+        if (reference && (reference->flags & TESObjectREFR::kFlag_Harvested))
+        {
+            return NULL;
+        }
+
       TESFlora *flora = DYNAMIC_CAST(thisObject, TESForm, TESFlora);
       if (flora)
       {
          TESForm *form = (TESForm *)flora->produce.produce;
+
+            if (!form) {
+                return NULL;
+            }
 
          // If the ingredient is actually an ingredient
          if (form->formType == kFormType_Ingredient)
@@ -725,10 +739,20 @@ IngredientItem* CAHZScaleform::GetIngredient(TESForm *thisObject)
    }
    else if (thisObject->GetFormType() == kFormType_Tree)
    {
+        // Skip if harvested
+        if (reference && (reference->flags & TESObjectREFR::kFlag_Harvested))
+        {
+            return NULL;
+        }
+
       TESObjectTREE *tree = DYNAMIC_CAST(thisObject, TESForm, TESObjectTREE);
       if (tree)
       {
          TESForm *form = (TESForm *)tree->produce.produce;//DYNAMIC_CAST(tree->produce.produce, IngredientItem, TESForm);
+
+            if (!form) {
+                return NULL;
+            }
 
          // If the ingredient is actually an ingredient
          if (form->formType == kFormType_Ingredient)
@@ -754,6 +778,10 @@ IngredientItem* CAHZScaleform::GetIngredient(TESForm *thisObject)
          else if (form->formType == kFormType_List)
          {
             BGSListForm *lvli = DYNAMIC_CAST(form, TESForm, BGSListForm);
+
+                if (!lvli) {
+                    return NULL;
+                }
 
             // Get the first form and see if it is an ingredient
             if (lvli->forms.count > 0)
@@ -783,6 +811,9 @@ SpellItem* CAHZScaleform::GetSpellItem(TESForm *thisObject)
       thisObject = reference->baseForm;
    }
 
+   if (!thisObject)
+	   return NULL;
+
    return DYNAMIC_CAST(thisObject, TESForm, SpellItem);
 }
 
@@ -797,15 +828,29 @@ AlchemyItem* CAHZScaleform::GetAlchemyItem(TESForm *thisObject)
       thisObject = reference->baseForm;
    }
 
+    if (!thisObject) {
+        return NULL;
+    }
+
    if (thisObject->GetFormType() == kFormType_Potion)
       return DYNAMIC_CAST(thisObject, TESForm, AlchemyItem);
 
    if (thisObject->GetFormType() == kFormType_Flora)
    {
+        // Skip if harvested
+        if (reference && (reference->flags & TESObjectREFR::kFlag_Harvested))
+        {
+            return NULL;
+        }
+
       TESFlora *flora = DYNAMIC_CAST(thisObject, TESForm, TESFlora);
       if (flora)
       {
          TESForm *form = (TESForm *)flora->produce.produce;
+
+            if (!form) {
+                return NULL;
+            }
 
          // If the food is actually food
          if (form->formType == kFormType_Potion)
@@ -832,6 +877,10 @@ AlchemyItem* CAHZScaleform::GetAlchemyItem(TESForm *thisObject)
          {
             BGSListForm *lvli = DYNAMIC_CAST(form, TESForm, BGSListForm);
 
+                if (!lvli) {
+                    return NULL;
+                }
+
             // Get the first form and see if it is an ingredient
             if (lvli->forms.count > 0)
             {
@@ -847,10 +896,20 @@ AlchemyItem* CAHZScaleform::GetAlchemyItem(TESForm *thisObject)
    }
    else if (thisObject->GetFormType() == kFormType_Tree)
    {
+        // Skip if harvested
+        if (reference && (reference->flags & TESObjectREFR::kFlag_Harvested))
+        {
+            return NULL;
+        }
+
       TESObjectTREE *tree = DYNAMIC_CAST(thisObject, TESForm, TESObjectTREE);
       if (tree)
       {
          TESForm *form = (TESForm *)tree->produce.produce;
+
+            if (!form) {
+                return NULL;
+            }
 
          // If the produce is actually food
          if (form->formType == kFormType_Potion)
@@ -877,6 +936,10 @@ AlchemyItem* CAHZScaleform::GetAlchemyItem(TESForm *thisObject)
          {
             BGSListForm *lvli = DYNAMIC_CAST(form, TESForm, BGSListForm);
 
+                if (!lvli) {
+                    return NULL;
+                }
+
             // Get the first form and see if it is an ingredient
             if (lvli->forms.count > 0)
             {
@@ -896,7 +959,12 @@ AlchemyItem* CAHZScaleform::GetAlchemyItem(TESForm *thisObject)
 
 bool CAHZScaleform::CanPickUp(TESForm* form)
 {
+	if (!form) {
+		return false;
+	}
+
 UINT32 formType = form->GetFormType();
+
 bool canCarry = (formType == kFormType_Weapon ||
       formType == kFormType_Armor ||
       formType == kFormType_SoulGem ||
@@ -950,7 +1018,9 @@ string CAHZScaleform::GetTargetName(TESForm *thisObject)
       {
          string soulName("");
          SettingCollectionMap	* settings = *g_gameSettingCollection;
+
 		 soulName = GetSoulLevelName(gem->soulSize);
+
 
 		 if (soulName.length())
          {
@@ -969,6 +1039,9 @@ bool CAHZScaleform::GetIsBookAndWasRead(TESObjectREFR *theObject)
    if (!theObject)
       return false;
 
+   if (!theObject->baseForm)
+	   return false;
+
    if (theObject->baseForm->GetFormType() != kFormType_Book)
       return false;
 
@@ -984,6 +1057,35 @@ bool CAHZScaleform::GetIsBookAndWasRead(TESObjectREFR *theObject)
 }
 
 static UInt32 lasttargetRef;
+
+static bool DoubleCompare(double a, double b)
+{
+	double delta = fabs(a - b);
+	if (delta <  std::numeric_limits<double>::epsilon() &&
+		delta > -std::numeric_limits<double>::epsilon()) {
+		return true;
+	}
+	return false;
+}
+
+static double GetPct(double current, double maxValue)
+{
+	double percent = -1; 
+
+	if (maxValue < 0)
+	{
+		return percent;
+	}
+
+	if (!DoubleCompare(maxValue, 0.0))
+	{
+		percent = ceil((current / maxValue) * 100.0);
+        return min(100, max(percent, -1));  // negative indicates that the actor value is not used
+	}
+
+	return percent;
+}
+
 void CAHZScaleform::ProcessEnemyInformation(GFxFunctionHandler::Args * args)
 {
    PlayerCharacter* pPC = (*g_thePlayer);
@@ -1005,22 +1107,36 @@ void CAHZScaleform::ProcessEnemyInformation(GFxFunctionHandler::Args * args)
       }
    }
    
-   GFxValue obj;
-   args->movie->CreateObject(&obj);
-   if (actorData.Level)
-   {
-	   RegisterNumber(&obj, "EnemyLevel", actorData.Level);
-	   RegisterNumber(&obj, "PlayerLevel", playerLevel);
+	GFxValue enemyObj;
+	GFxValue playerObj;
+	args->movie->CreateObject(&enemyObj);
+	args->movie->CreateObject(&playerObj);
+
+	RegisterNumber(&enemyObj, "level", actorData.Level);
+	RegisterNumber(&playerObj, "level", playerLevel);
 	   string soulName = GetSoulLevelName((UInt8)soulType);
 	   if (soulType && soulName.length())
 	   {
-			RegisterString(&obj, args->movie, "Soul", soulName.c_str());
+		RegisterString(&enemyObj, args->movie, "soul", soulName.c_str());
 	   }
-   }
+	RegisterNumber(&enemyObj, "maxHealth", ceil(actorData.maxHealth));
+	RegisterNumber(&enemyObj, "health", ceil(actorData.health));
+	RegisterNumber(&enemyObj, "healthPct", GetPct(actorData.health, actorData.maxHealth));
+	RegisterNumber(&enemyObj, "maxMagicka", ceil(actorData.maxMagicka));
+	RegisterNumber(&enemyObj, "magicka", ceil(actorData.magicka));
+	RegisterNumber(&enemyObj, "magickaPct", GetPct(actorData.magicka, actorData.maxMagicka));
+	RegisterNumber(&enemyObj, "maxStamina", ceil(actorData.maxStamina));
+	RegisterNumber(&enemyObj, "stamina", ceil(actorData.stamina));
+	RegisterNumber(&enemyObj, "staminaPct", GetPct(actorData.stamina, actorData.maxStamina));
+	RegisterBoolean(&enemyObj, "targetChanged", actorData.targetChanged);
 
-   if (args->args[0].HasMember("outObj"))
+	if (args->args[0].HasMember("player"))
+	{
+		args->args[0].SetMember("player", &playerObj);
+   }
+	if (args->args[0].HasMember("enemy"))
    {
-      args->args[0].SetMember("outObj", &obj);
+		args->args[0].SetMember("enemy", &enemyObj);
    }
 }
 
@@ -1030,6 +1146,9 @@ string CAHZScaleform::GetArmorWeightClass(TESObjectREFR *theObject)
 
    if (!theObject)
       return desc;
+
+   if (!theObject->baseForm)
+	   return desc;
 
    if (theObject->baseForm->GetFormType() != kFormType_Armor)
       return desc;
@@ -1557,7 +1676,6 @@ void CAHZScaleform::ProcessValueToWeight(TESObjectREFR* targetObject, GFxFunctio
    SetResultString(args, valueToWeight.c_str());
 };
 
-
 void CAHZScaleform::ProcessBookSkill(TESObjectREFR* targetObject, GFxFunctionHandler::Args *args)
 {
    TESObjectREFR * pTargetReference = targetObject;
@@ -1752,28 +1870,28 @@ void CAHZScaleform::BuildInventoryObject(TESForm* form, GFxFunctionHandler::Args
    {
       args->args[0].DeleteMember("inventoryObj");
    }
-};
+}
 
 void CAHZScaleform::RegisterString(GFxValue * dst, GFxMovieView * view, const char * name, const char * str)
 {
    GFxValue	fxValue;
    fxValue.SetString(str);
    dst->SetMember(name, &fxValue);
-};
+}
 
 void CAHZScaleform::RegisterNumber(GFxValue * dst, const char * name, double value)
 {
    GFxValue	fxValue;
    fxValue.SetNumber(value);
    dst->SetMember(name, &fxValue);
-};
+}
 
 void CAHZScaleform::RegisterBoolean(GFxValue * dst, const char * name, bool value)
 {
    GFxValue	fxValue;
    fxValue.SetBool(value);
    dst->SetMember(name, &fxValue);
-};
+}
 
 void CAHZScaleform::ProcessValidTarget(TESObjectREFR* targetObject, GFxFunctionHandler::Args *args)
 {
@@ -1793,18 +1911,24 @@ void CAHZScaleform::ProcessValidTarget(TESObjectREFR* targetObject, GFxFunctionH
    }
 
    bool canCarry = false;
+    bool isActivator = false;
 
    TESForm *targetForm = AHZGetForm(pTargetReference);
    TESForm *spellItem = NULL;
+
+    if (pTargetReference->baseForm && pTargetReference->baseForm->GetFormType() == kFormType_Activator && targetForm)
+    {
+        isActivator = true;
+    }
 
    // If the target is not valid or it can't be picked up by the player
    if ((canCarry = (GetIngredient(targetForm) != NULL)) ||
       (canCarry = (GetAlchemyItem(targetForm) != NULL)) ||
       (canCarry = CanPickUp(pTargetReference->baseForm) ||
-      (pTargetReference->baseForm->GetFormType() == kFormType_Activator && targetForm)) ||
+        (isActivator)) ||
          ((spellItem = GetSpellItem(targetForm)) != NULL))
    {
-      if (pTargetReference->baseForm->GetFormType() == kFormType_Activator && targetForm && !CanPickUp(targetForm))
+        if (isActivator && !CanPickUp(targetForm))
       {
          canCarry = false;
       }
