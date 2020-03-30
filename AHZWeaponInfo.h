@@ -1,5 +1,12 @@
 #pragma once
 
+class AHZProjectile : public TESObjectREFR
+{
+public:
+	UInt8	unk[0x128-0x54];		// 54
+	TESAmmo * sourceAmmo;			// 128
+};
+
 class MatchByForm : public FormMatcher
 {
 	TESForm * m_form;

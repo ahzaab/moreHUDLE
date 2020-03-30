@@ -7,20 +7,24 @@
 #include "skse/SafeWrite.h"
 #include "AHZScaleformHook.h"
 #include "skse/GameMenus.h"
+#include "skse/GameExtraData.h"
+#include "skse/GameData.h"
 #include "skse/PapyrusEvents.h"
 #include <string>
 
 using namespace std;
 static bool ahzMenuLoaded = false;
-static SafeEnemyLevelDataHolder ahzTargetHandle;
+static SafeEnemyDataHolder ahzEnemyData;
 TESObjectREFR *g_ahzTargetReference;
 
 EventResult AHZEventHandler::ReceiveEvent(MenuOpenCloseEvent * evn, EventDispatcher<MenuOpenCloseEvent> * dispatcher)
 {
    string menuName(evn->menuName.data);
+
    if ((ahzMenuLoaded == false) && (menuName == "HUD Menu") && (evn->opening))
    {
       GFxMovieView *view = MenuManager::GetSingleton()->GetMovieView(&evn->menuName);
+
       if (view)
       {
          GFxValue hudComponent;
@@ -103,19 +107,36 @@ EventResult AHZCrosshairRefEventHandler::ReceiveEvent(SKSECrosshairRefEvent * ev
 // Hook the enemy updating
 static const UInt32 kEnemyUpdateHook_Base = 0x00862159;
 static const UInt32 kEnemyUpdateHook_Entry_retn = kEnemyUpdateHook_Base + 0x05;
-
+static UInt32 lastRefHandle = 0;
 typedef bool (* _LookupREFRByHandle_AHZ)(UInt32 * refHandle, NiPointer<TESObjectREFR> *refrOut);
 const _LookupREFRByHandle_AHZ		LookupREFRByHandle_AHZ = (_LookupREFRByHandle_AHZ)(UInt32)(LookupREFRByHandle);
 
 void __fastcall EnemyHealth_Update_Hook(TESObjectREFR *refrOut)
 {
-	TESObjectREFR * reference = refrOut;
+    TESObjectREFR * reference = refrOut;
+    UInt32 refHandle = 0;
    if (!reference)
    {
       return;
    }
+    
+   PlayerCharacter* pPC = (*g_thePlayer);
+   if (pPC)
+   {
+       refHandle = pPC->targetHandle; 
+   }
+
+    bool targetChanged = (lastRefHandle != (UInt32)refHandle);
    UInt16 npcLevel = 0;
    UInt32 isSentient = 0;
+    float maxHealth = 0;
+    float health = 0;
+    float maxMagicka = 0;
+    float magicka = 0;
+    float maxStamina = 0;
+    float stamina = 0;
+    lastRefHandle = (UInt32)refHandle;
+
    if (reference)
    {
       if (reference->baseForm->formType == kFormType_NPC ||
@@ -126,23 +147,36 @@ void __fastcall EnemyHealth_Update_Hook(TESObjectREFR *refrOut)
          {
             npcLevel = CALL_MEMBER_FN(pNPC, GetLevel)();
 			isSentient = CAHZActorInfo::IsSentient(pNPC);
+                UInt32 actorValue = LookupActorValueByName("health");
+                maxHealth = pNPC->actorValueOwner.GetMaximum(actorValue);
+                health = pNPC->actorValueOwner.GetCurrent(actorValue);
+                actorValue = LookupActorValueByName("magicka");
+                maxMagicka = pNPC->actorValueOwner.GetMaximum(actorValue);
+                magicka = pNPC->actorValueOwner.GetCurrent(actorValue);
+                actorValue = LookupActorValueByName("stamina");
+                maxStamina = pNPC->actorValueOwner.GetMaximum(actorValue);
+                stamina = pNPC->actorValueOwner.GetCurrent(actorValue);
          }
       }
    }
 
-   ahzTargetHandle.Lock();
-   ahzTargetHandle.m_data.Level = npcLevel;
-   ahzTargetHandle.m_data.IsSentient = isSentient;
-   ahzTargetHandle.Release();
+
+    CAHZActorData data;
+    data.targetChanged = targetChanged;
+    data.Level = npcLevel;
+    data.IsSentient = isSentient;
+    data.maxHealth = maxHealth;
+    data.health = health;
+    data.maxMagicka = maxMagicka;
+    data.magicka = magicka;
+    data.maxStamina = maxStamina;
+    data.stamina = stamina;
+    ahzEnemyData.SetData(data);
 }
 //RelocPtr<SimpleLock>		globalMenuStackLock(0x1EE4A60);
 CAHZActorData GetCurrentEnemyData()
 {
-   CAHZActorData refr;
-   ahzTargetHandle.Lock();
-   refr = ahzTargetHandle.m_data;
-   ahzTargetHandle.Release();
-   return refr;
+    return ahzEnemyData.GetData();
 }
 
 __declspec(naked) void InstallEnemyUpdateHook_Entry(void)

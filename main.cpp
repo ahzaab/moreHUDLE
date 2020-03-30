@@ -47,7 +47,7 @@ SKSEScaleformInterface* g_scaleform = NULL;
 SKSEMessagingInterface *g_skseMessaging = NULL;
 AHZEventHandler menuEvent;
 AHZCrosshairRefEventHandler crossHairEvent;
-#define PLUGIN_VERSION  (30000)
+#define PLUGIN_VERSION  (30002)
 
 // Just initialize to start routing to the console window
 CAHZDebugConsole theDebugConsole;
@@ -316,12 +316,12 @@ extern "C"
 
    bool SKSEPlugin_Load(const SKSEInterface * skse)
    {
-	   //while (!IsDebuggerPresent())
-	   //{
-	   //   Sleep(10);
-	   //}
+	 /*  while (!IsDebuggerPresent())
+	   {
+	      Sleep(10);
+	   }
 
-	   //Sleep(1000 * 2);
+	   Sleep(1000 * 2);*/
 
 
 

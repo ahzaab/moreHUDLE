@@ -1,9 +1,9 @@
 #pragma once
-#pragma once
 
 #include "skse/PapyrusEvents.h"
 #include "AHZActorInfo.h"
 
+void Hooks_EnemyUpdate_Commit(void);
 CAHZActorData GetCurrentEnemyData();
 extern TESObjectREFR *g_ahzTargetReference;
 
@@ -18,12 +18,25 @@ class AHZCrosshairRefEventHandler : public BSTEventSink <SKSECrosshairRefEvent>
 };
 
 
-class SafeEnemyLevelDataHolder: public SafeDataHolder<CAHZActorData>
+class SafeEnemyDataHolder: public SafeDataHolder<CAHZActorData>
 {
 public:
-   SafeEnemyLevelDataHolder() {};
-   ~SafeEnemyLevelDataHolder() {};
+   SafeEnemyDataHolder() {};
+   ~SafeEnemyDataHolder() {};
+
+   CAHZActorData GetData()
+   {
+	   CAHZActorData data;
+	   Lock();
+	   data = m_data;
+	   Release();
+	   return data;
+   };
+
+   void SetData(const CAHZActorData &data)
+   {
+	   Lock();
+	   m_data = data;
+	   Release();
+   };
 };
-
-
-void Hooks_EnemyUpdate_Commit(void);
